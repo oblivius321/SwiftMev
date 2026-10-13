@@ -1,0 +1,5 @@
+numpy>=1.26,<3
+opencv-python-headless>=4.9,<5
+scikit-image>=0.23,<1
+pytest>=8,<10
+psutil>=6,<8

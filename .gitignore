@@ -1,0 +1,22 @@
+# Python
+**/__pycache__/
+**/.venv/
+**/.pytest_cache/
+*.pyc
+
+# .NET / C# / Visual Studio
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Outputs gerados durante execução
+outputs/*
+!outputs/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
