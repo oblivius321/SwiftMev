@@ -1,171 +1,374 @@
 <Window x:Class="SwiftMev.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SwiftMev Alpha 0.4 | Análise Microscópica e Validação Científica" 
-        Height="640" Width="1100" MinHeight="480" MinWidth="800"
-        Background="#0B0F17" Foreground="#F1F5F9"
-        WindowStartupLocation="CenterScreen">
-    
+        Title="SwiftMev Alpha 0.5 | Análise Microscópica e Validação Científica" 
+        Height="720" Width="1200" MinHeight="540" MinWidth="900"
+        Background="{DynamicResource WindowBgBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+        FontFamily="Segoe UI, Inter, Roboto, Arial"
+        WindowStartupLocation="CenterScreen"
+        AllowDrop="True"
+        DragOver="Window_DragOver"
+        Drop="Window_Drop">
+
+    <Window.Resources>
+        <!-- Paleta Dinâmica de Temas (Light Mode padrão / Dark Mode alternável) -->
+        <SolidColorBrush x:Key="WindowBgBrush" Color="#F4F7FB"/>
+        <SolidColorBrush x:Key="TopBarBgBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="BorderSubtleBrush" Color="#D9E2EC"/>
+        <SolidColorBrush x:Key="CardBgBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="SubCardBgBrush" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1F2937"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#5B6B7A"/>
+        <SolidColorBrush x:Key="BrandTitleBrush" Color="#1565C0"/>
+        <SolidColorBrush x:Key="CanvasBgBrush" Color="#EAEFF5"/>
+        <SolidColorBrush x:Key="ViewerToolbarBgBrush" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="DropZoneBgBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TabInactiveBgBrush" Color="#E2E8F0"/>
+        <SolidColorBrush x:Key="TabActiveBgBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="InputBgBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="InputFgBrush" Color="#1F2937"/>
+        <SolidColorBrush x:Key="BtnSecondaryBgBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="BtnSecondaryFgBrush" Color="#1F2937"/>
+        <SolidColorBrush x:Key="BtnSecondaryBorderBrush" Color="#D9E2EC"/>
+        <SolidColorBrush x:Key="AuditBgBrush" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="AuditFgBrush" Color="#334155"/>
+        <SolidColorBrush x:Key="ScaleBarLineBrush" Color="#0F172A"/>
+        <SolidColorBrush x:Key="ScaleBarTextBrush" Color="#0F172A"/>
+        <SolidColorBrush x:Key="ScaleBarOverlayBgBrush" Color="#CCFFFFFF"/>
+
+        <!-- Estilo dos Controles de Seleção (Segmented TabControl Científico) -->
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <Style TargetType="TabItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabBorder" Background="{DynamicResource TabInactiveBgBrush}" CornerRadius="7,7,0,0" Margin="0,0,4,0" Padding="14,8" BorderThickness="1,1,1,0" BorderBrush="{DynamicResource BorderSubtleBrush}" Cursor="Hand">
+                            <ContentPresenter x:Name="TabContent" ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource TabActiveBgBrush}"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="#1D8CF8"/>
+                                <Setter TargetName="TabBorder" Property="BorderThickness" Value="1,2,1,0"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrandTitleBrush}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Estilos Globais de Inputs Dinâmicos -->
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="{DynamicResource InputBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource InputFgBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource InputBgBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource InputFgBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="{DynamicResource InputBgBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource InputFgBrush}"/>
+            <Setter Property="Padding" Value="8,6"/>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <!-- Header / MenuBar -->
+            <RowDefinition Height="Auto"/> <!-- Header / TopBar -->
             <RowDefinition Height="*"/>    <!-- Main Workspace -->
             <RowDefinition Height="Auto"/> <!-- Status Bar -->
         </Grid.RowDefinitions>
 
-        <!-- Top Bar: Branding, Draggable Header, Project Actions & Window Controls -->
-        <Border Grid.Row="0" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,0,0,1" 
-                Padding="14,6" MouseLeftButtonDown="TopBar_MouseLeftButtonDown" Cursor="Arrow">
+        <!-- Top Bar: Logo, Branding, Ações e Botão de Alternar Modo Claro/Escuro -->
+        <Border Grid.Row="0" Background="{DynamicResource TopBarBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1" 
+                Padding="20,10" MouseLeftButtonDown="TopBar_MouseLeftButtonDown" Cursor="Arrow">
             <DockPanel LastChildFill="False">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock Text="SwiftMev" FontSize="20" FontWeight="Bold" Foreground="#38BDF8"/>
-                    <Border Background="#0369A1" CornerRadius="4" Margin="10,2,0,2" Padding="6,2">
-                        <TextBlock Text="Alpha 0.4" FontSize="11" FontWeight="Bold" Foreground="White"/>
+                    <TextBlock Text="SwiftMev" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource BrandTitleBrush}"/>
+                    <Border Background="#EBF5FF" BorderBrush="#BEE0FF" BorderThickness="1" CornerRadius="6" Margin="12,2,0,2" Padding="8,3">
+                        <TextBlock Text="Alpha 0.5" FontSize="11" FontWeight="Bold" Foreground="#1D8CF8"/>
                     </Border>
-                    <TextBlock Text="— Microscopia de Varredura e Ensaios In Vitro" MaxWidth="260" TextTrimming="CharacterEllipsis" 
-                               Foreground="#64748B" FontSize="11" Margin="10,4,0,0"/>
+                    <TextBlock Text="— Análise Microscópica e Validação Científica (MEV / Ensaios In Vitro)" 
+                               MaxWidth="450" TextTrimming="CharacterEllipsis" 
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="14,4,0,0"/>
                 </StackPanel>
 
-                <!-- Window & Project Controls -->
+                <!-- Project Action Buttons & Theme Toggle Button -->
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="📂 Abrir Imagem" Click="ChooseImage_Click" Padding="10,5" Margin="3,0" 
-                            Background="#1E293B" Foreground="#E2E8F0" BorderBrush="#334155" FontSize="11" Cursor="Hand"/>
-                    <Button Content="💾 Salvar Projeto" Click="SaveProject_Click" Padding="10,5" Margin="3,0" 
-                            Background="#1E293B" Foreground="#E2E8F0" BorderBrush="#334155" FontSize="11" Cursor="Hand"/>
-                    <Button Content="📁 Abrir Projeto" Click="OpenProject_Click" Padding="10,5" Margin="3,0" 
-                            Background="#1E293B" Foreground="#E2E8F0" BorderBrush="#334155" FontSize="11" Cursor="Hand"/>
-                    <Button Content="📊 Exportar Relatório" Click="ExportReport_Click" Padding="10,5" Margin="3,0" 
-                            Background="#0284C7" Foreground="White" BorderThickness="0" FontWeight="SemiBold" FontSize="11" Cursor="Hand"/>
+                    <!-- Botão de Alternar Modo Claro e Modo Escuro -->
+                    <Button x:Name="BtnThemeToggle" Content="🌙 Modo Escuro" Click="ThemeToggle_Click" Padding="12,7" Margin="4,0" 
+                            Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BtnSecondaryFgBrush}" 
+                            BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" 
+                            FontSize="12" FontWeight="SemiBold" Cursor="Hand" ToolTip="Alternar entre Modo Claro e Modo Escuro">
+                        <Button.Resources>
+                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
+                        </Button.Resources>
+                    </Button>
 
-                    <!-- Separador -->
-                    <Border Width="1" Height="20" Background="#334155" Margin="8,0"/>
-
-                    <!-- Botões da Janela: Minimizar, Maximizar, Fechar (X) -->
-                    <Button Content="—" Click="Minimize_Click" Width="30" Height="26" Margin="2,0"
-                            Background="#1E293B" Foreground="#94A3B8" BorderThickness="0" FontSize="11"
-                            ToolTip="Minimizar Janela" Cursor="Hand"/>
-                    <Button x:Name="BtnMaximize" Content="🗖" Click="Maximize_Click" Width="30" Height="26" Margin="2,0"
-                            Background="#1E293B" Foreground="#94A3B8" BorderThickness="0" FontSize="11"
-                            ToolTip="Maximizar / Restaurar" Cursor="Hand"/>
-                    <Button Content="✕" Click="Close_Click" Width="34" Height="26" Margin="2,0"
-                            Background="#DC2626" Foreground="White" BorderThickness="0" FontSize="13" FontWeight="Bold"
-                            ToolTip="Fechar SwiftMev" Cursor="Hand"/>
+                    <Button Content="📂 Abrir Imagem" Click="ChooseImage_Click" Padding="14,7" Margin="4,0" 
+                            Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BtnSecondaryFgBrush}" 
+                            BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" 
+                            FontSize="12" FontWeight="SemiBold" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Content="💾 Salvar Projeto" Click="SaveProject_Click" Padding="14,7" Margin="4,0" 
+                            Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BtnSecondaryFgBrush}" 
+                            BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" 
+                            FontSize="12" FontWeight="SemiBold" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Content="📁 Abrir Projeto" Click="OpenProject_Click" Padding="14,7" Margin="4,0" 
+                            Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BtnSecondaryFgBrush}" 
+                            BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" 
+                            FontSize="12" FontWeight="SemiBold" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
+                        </Button.Resources>
+                    </Button>
+                    <Button Content="📊 Exportar Relatório" Click="ExportReport_Click" Padding="16,7" Margin="6,0,0,0" 
+                            Background="#1D8CF8" Foreground="#FFFFFF" BorderThickness="0" 
+                            FontWeight="Bold" FontSize="12" Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style>
+                        </Button.Resources>
+                    </Button>
                 </StackPanel>
             </DockPanel>
         </Border>
 
-        <!-- Main Workspace (3 Panes: Tools/Controls, Center Viewer, Right Metrics) -->
-        <Grid Grid.Row="1" Margin="12">
+        <!-- Main Workspace (3 Panes com Cards Dinâmicos) -->
+        <Grid Grid.Row="1" Margin="16">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="320"/> <!-- Left Pane: Parameters & Pipeline -->
-                <ColumnDefinition Width="12"/>
-                <ColumnDefinition Width="*"/>   <!-- Center Pane: Interactive Microscopic Viewer -->
-                <ColumnDefinition Width="12"/>
-                <ColumnDefinition Width="320"/> <!-- Right Pane: Metrics, Audit & History -->
+                <ColumnDefinition Width="340"/> <!-- Left Pane: Configuração & Abas -->
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="*"/>   <!-- Center Pane: Visualizador Clínico & DropZone -->
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="330"/> <!-- Right Pane: Resultados & Auditoria -->
             </Grid.ColumnDefinitions>
 
-            <!-- LEFT PANE: Parâmetros, Calibração e Ferramentas -->
-            <Border Grid.Column="0" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="14">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <!-- Seção 1: Calibração Espacial -->
-                        <TextBlock Text="1. CALIBRAÇÃO ESPACIAL" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,8"/>
-                        <Border Background="#1E293B" CornerRadius="6" Padding="10" Margin="0,0,0,14">
-                            <StackPanel>
-                                <TextBlock Text="Escala (μm / pixel):" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4"/>
-                                <Grid Margin="0,0,0,8">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox x:Name="TxtCalibration" Text="1.0" Padding="6,4" Background="#0B0F17" 
-                                             Foreground="#F8FAFC" BorderBrush="#334155" TextChanged="Calibration_TextChanged"/>
-                                    <TextBlock Grid.Column="1" Text="μm/px" VerticalAlignment="Center" Margin="6,0,0,0" Foreground="#64748B" FontSize="11"/>
-                                </Grid>
-                                
-                                <Button x:Name="BtnRulerCalibrate" Content="📏 Calibrar por Barra de Escala" Click="RulerCalibrate_Click"
-                                        Padding="8,6" Background="#334155" Foreground="#F8FAFC" BorderThickness="0" 
-                                        FontSize="11" FontWeight="SemiBold" Cursor="Hand"/>
-                                <TextBlock x:Name="RulerStatus" Text="Clique para medir a barra na imagem" 
-                                           FontSize="10" Foreground="#FBBF24" Margin="0,4,0,0" Visibility="Collapsed"/>
-                            </StackPanel>
-                        </Border>
+            <!-- LEFT PANE: Card com Abas Suaves -->
+            <Border Grid.Column="0" Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12" Padding="14">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
 
-                        <!-- Seção 2: Segmentação Automática -->
-                        <TextBlock Text="2. SEGMENTAÇÃO AUTOMÁTICA" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,8"/>
-                        <Border Background="#1E293B" CornerRadius="6" Padding="10" Margin="0,0,0,14">
-                            <StackPanel>
-                                <TextBlock Text="Módulo Científico:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4"/>
-                                <ComboBox x:Name="CmbModule" SelectedIndex="0" Padding="6,4" Margin="0,0,0,10"
-                                          Background="#0B0F17" Foreground="#0F172A">
-                                    <ComboBoxItem Content="🔬 Diâmetro de Fibras (MEV)" Tag="fiber"/>
-                                    <ComboBoxItem Content="🧫 Migração Celular (Scratch)" Tag="migration"/>
-                                </ComboBox>
+                    <TabControl x:Name="TabMainControl" Grid.Row="0">
+                        <!-- ABA 1: ANÁLISE / SEGMENTAÇÃO -->
+                        <TabItem Header="🔬 Análise">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <!-- Status da Calibração -->
+                                    <Border Background="#FFF7E6" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                                        <DockPanel LastChildFill="True">
+                                            <Button DockPanel.Dock="Right" Content="Ajustar" Click="GoToCalibration_Click" 
+                                                    Padding="10,4" Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BrandTitleBrush}" 
+                                                    BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" 
+                                                    FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                            </Button>
+                                            <StackPanel>
+                                                <TextBlock Text="Status da Calibração:" FontSize="10" Foreground="#92400E" FontWeight="SemiBold"/>
+                                                <TextBlock x:Name="BadgeCalibStatusAnalyse" Text="⚠️ Calibração Pendente" 
+                                                           FontWeight="Bold" FontSize="12" Foreground="#B45309" Margin="0,3,0,0"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
 
-                                <TextBlock Text="Algoritmo de Binarização:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4"/>
-                                <ComboBox x:Name="CmbMethod" SelectedIndex="0" Padding="6,4" Margin="0,0,0,10"
-                                          Background="#0B0F17" Foreground="#0F172A">
-                                    <ComboBoxItem Content="Otsu Global (Padrão Rigoroso)" Tag="otsu"/>
-                                    <ComboBoxItem Content="Sauvola Local (Experimental)" Tag="sauvola"/>
-                                </ComboBox>
+                                    <!-- Módulo Científico -->
+                                    <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                                        <StackPanel>
+                                            <TextBlock Text="Módulo científico" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrandTitleBrush}" Margin="0,0,0,6"/>
+                                            <ComboBox x:Name="CmbModule" SelectedIndex="0" Padding="8,6" Margin="0,0,0,6" FontSize="12">
+                                                <ComboBoxItem Content="🔬 Diâmetro de Fibras (MEV)" Tag="fiber"/>
+                                                <ComboBoxItem Content="🧫 Migração Celular (Scratch)" Tag="migration"/>
+                                            </ComboBox>
+                                            <TextBlock Text="• Fibras: diâmetro por transformada de distância euclidiana.&#x0a;• Scratch: taxa de migração e confluência celular." 
+                                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
 
-                                <CheckBox x:Name="ChkClahe" Content="CLAHE (Correção de Gradiente)" 
-                                          Foreground="#CBD5E1" FontSize="11" Margin="0,0,0,6"/>
-                                <CheckBox x:Name="ChkInvert" Content="Inverter Polaridade da Máscara" 
-                                          Foreground="#CBD5E1" FontSize="11" Margin="0,0,0,10"/>
+                                    <!-- Binarização e Parâmetros -->
+                                    <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                                        <StackPanel>
+                                            <TextBlock Text="Binarização e filtros" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrandTitleBrush}" Margin="0,0,0,6"/>
+                                            
+                                            <TextBlock Text="Método de limiarização:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                            <ComboBox x:Name="CmbMethod" SelectedIndex="0" Padding="8,6" Margin="0,0,0,10" FontSize="12">
+                                                <ComboBoxItem Content="Otsu Global (Padrão Rigoroso)" Tag="otsu" ToolTip="Limiar estatístico ótimo para distribuição bimodal"/>
+                                                <ComboBoxItem Content="Sauvola Local (Adaptativo)" Tag="sauvola" ToolTip="Ideal para compensar gradientes e variações de iluminação"/>
+                                            </ComboBox>
 
-                                <Button x:Name="BtnRunAuto" Content="⚡ Processar Imagem" Click="RunAutoSegmentation_Click"
-                                        Padding="10,8" Background="#0284C7" Foreground="White" FontWeight="Bold" 
-                                        BorderThickness="0" Cursor="Hand"/>
-                            </StackPanel>
-                        </Border>
+                                            <CheckBox x:Name="ChkClahe" Content="CLAHE (Correção de Gradiente)" 
+                                                      ToolTip="Equalização adaptativa para destacar microestruturas e fibras tênues"
+                                                      Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" Margin="0,0,0,8"/>
+                                            <CheckBox x:Name="ChkInvert" Content="Inverter Polaridade da Máscara" 
+                                                      ToolTip="Inverte foreground/background quando fibras são escuras sobre fundo claro"
+                                                      Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" Margin="0,0,0,14"/>
 
-                        <!-- Seção 3: Edição Manual de Máscara -->
-                        <TextBlock Text="3. EDIÇÃO MANUAL DE MÁSCARA" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,8"/>
-                        <Border Background="#1E293B" CornerRadius="6" Padding="10" Margin="0,0,0,14">
-                            <StackPanel>
-                                <TextBlock Text="Ferramenta de Edição:" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,6"/>
-                                <WrapPanel Margin="0,0,0,8">
-                                    <RadioButton x:Name="ToolPan" Content="🖐 Pan/Zoom" GroupName="Tool" IsChecked="True" 
-                                                 Checked="Tool_Checked" Foreground="#E2E8F0" FontSize="11" Margin="0,0,8,4"/>
-                                    <RadioButton x:Name="ToolBrush" Content="🖌 Pincel (+)" GroupName="Tool" 
-                                                 Checked="Tool_Checked" Foreground="#4ADE80" FontSize="11" Margin="0,0,8,4"/>
-                                    <RadioButton x:Name="ToolEraser" Content="🧹 Borracha (-)" GroupName="Tool" 
-                                                 Checked="Tool_Checked" Foreground="#F87171" FontSize="11" Margin="0,0,0,4"/>
-                                </WrapPanel>
+                                            <Button x:Name="BtnRunAuto" Content="⚡ Processar Imagem" Click="RunAutoSegmentation_Click"
+                                                    Padding="14,10" Background="#1D8CF8" Foreground="#FFFFFF" FontWeight="Bold" 
+                                                    FontSize="13" BorderThickness="0" Cursor="Hand">
+                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                            </Button>
 
-                                <DockPanel Margin="0,0,0,8">
-                                    <TextBlock Text="Raio:" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center"/>
-                                    <TextBlock x:Name="LblBrushSize" Text="10 px" FontSize="11" Foreground="#F8FAFC" 
-                                               DockPanel.Dock="Right" VerticalAlignment="Center" Width="36" TextAlignment="Right"/>
-                                    <Slider x:Name="SliderBrushSize" Minimum="2" Maximum="50" Value="10" 
-                                            ValueChanged="SliderBrushSize_ValueChanged" Margin="8,0"/>
-                                </DockPanel>
+                                            <ProgressBar x:Name="ProgressBarProcessing" IsIndeterminate="True" Height="4" Margin="0,8,0,0" 
+                                                         Background="{DynamicResource BorderSubtleBrush}" Foreground="#1D8CF8" Visibility="Collapsed"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
 
-                                <Button Content="↺ Restaurar Máscara Original" Click="RestoreOriginalMask_Click" 
-                                        Padding="6,4" Background="#334155" Foreground="#CBD5E1" BorderThickness="0" 
-                                        FontSize="10" Margin="0,0,0,8" Cursor="Hand"/>
+                        <!-- ABA 2: CALIBRAÇÃO ESPACIAL -->
+                        <TabItem x:Name="TabCalibration" Header="📏 Calibração">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <!-- Alerta Metrológico Explicativo -->
+                                    <Border Background="#EAF4FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                                        <StackPanel>
+                                            <TextBlock Text="ℹ️ Rigor Metrológico Obrigatório" FontWeight="Bold" FontSize="11" Foreground="#1E40AF" Margin="0,0,0,3"/>
+                                            <TextBlock Text="Para medições físicas com validade científica, o SwiftMev exige que a calibração microscópica (μm/px) seja confirmada." 
+                                                       FontSize="11" Foreground="#1E3A8A" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
 
-                                <Button x:Name="BtnRecalculate" Content="📐 Recalcular Métricas da Máscara" Click="RecalculateMetrics_Click"
-                                        Padding="8,8" Background="#059669" Foreground="White" FontWeight="Bold" 
-                                        FontSize="11" BorderThickness="0" Cursor="Hand"/>
-                            </StackPanel>
-                        </Border>
+                                    <!-- Entrada Manual -->
+                                    <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                                        <StackPanel>
+                                            <TextBlock Text="Status atual:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                            <TextBlock x:Name="BadgeCalibStatusTab" Text="⚠️ Escala Não Definida" 
+                                                       FontWeight="Bold" FontSize="13" Foreground="#E5484D" Margin="0,0,0,10"/>
 
-                        <!-- Box de Alerta Científico -->
-                        <Border x:Name="WarningBox" Visibility="Collapsed" Background="#451A03" BorderBrush="#F59E0B" 
-                                BorderThickness="1" CornerRadius="6" Padding="10">
-                            <StackPanel>
-                                <TextBlock Text="⚠️ Validação / Alerta Metrológico" FontWeight="Bold" Foreground="#FBBF24" FontSize="11" Margin="0,0,0,2"/>
-                                <TextBlock x:Name="TxtWarningMessage" TextWrapping="Wrap" Foreground="#FEF3C7" FontSize="10"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
+                                            <TextBlock Text="Escala manual (μm / pixel):" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox x:Name="TxtCalibration" Text="" Padding="8,6" FontSize="12" 
+                                                         TextChanged="Calibration_TextChanged"/>
+                                                <TextBlock Grid.Column="1" Text="μm/px" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+                                            </Grid>
+
+                                            <Button Content="✓ Confirmar Escala Manual" Click="ConfirmCalibration_Click"
+                                                    Padding="12,8" Background="#1565C0" Foreground="#FFFFFF" BorderThickness="0" 
+                                                    FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Régua Interativa -->
+                                    <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                                        <StackPanel>
+                                            <TextBlock Text="Calibração por barra de escala" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrandTitleBrush}" Margin="0,0,0,4"/>
+                                            <TextBlock Text="Meça diretamente sobre a barra impressa pelo MEV na micrografia." 
+                                                       FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+
+                                            <Button x:Name="BtnRulerCalibrate" Content="📏 Ativar Régua na Imagem" Click="RulerCalibrate_Click"
+                                                    Padding="12,8" Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BrandTitleBrush}" 
+                                                    BorderBrush="#1D8CF8" BorderThickness="1" 
+                                                    FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                            </Button>
+
+                                            <TextBlock x:Name="RulerStatus" Text="Clique para medir a barra na imagem" 
+                                                       FontSize="11" Foreground="#B45309" FontWeight="SemiBold" Margin="0,6,0,0" Visibility="Collapsed" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- ABA 3: EDIÇÃO MANUAL DE MÁSCARA -->
+                        <TabItem Header="🖌️ Edição">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,12,0,0">
+                                <StackPanel>
+                                    <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
+                                        <StackPanel>
+                                            <TextBlock Text="Ferramentas de edição" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrandTitleBrush}" Margin="0,0,0,8"/>
+                                            <WrapPanel Margin="0,0,0,10">
+                                                <RadioButton x:Name="ToolPan" Content="🖐 Pan/Zoom" GroupName="Tool" IsChecked="True" 
+                                                             Checked="Tool_Checked" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" Margin="0,0,10,6"/>
+                                                <RadioButton x:Name="ToolBrush" Content="🖌 Pincel (+)" GroupName="Tool" 
+                                                             Checked="Tool_Checked" Foreground="#16A34A" FontSize="11" FontWeight="Bold" Margin="0,0,10,6"/>
+                                                <RadioButton x:Name="ToolEraser" Content="🧹 Borracha (-)" GroupName="Tool" 
+                                                             Checked="Tool_Checked" Foreground="#DC2626" FontSize="11" FontWeight="Bold" Margin="0,0,0,6"/>
+                                            </WrapPanel>
+
+                                            <DockPanel Margin="0,0,0,12">
+                                                <TextBlock Text="Raio:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="LblBrushSize" Text="10 px" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"
+                                                           DockPanel.Dock="Right" VerticalAlignment="Center" Width="42" TextAlignment="Right"/>
+                                                <Slider x:Name="SliderBrushSize" Minimum="2" Maximum="60" Value="10" 
+                                                        ValueChanged="SliderBrushSize_ValueChanged" Margin="10,0"/>
+                                            </DockPanel>
+
+                                            <!-- Ações: Desfazer e Restaurar -->
+                                            <Grid Margin="0,0,0,10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="8"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button x:Name="BtnUndo" Grid.Column="0" Content="↩ Desfazer" Click="UndoMask_Click" 
+                                                        Padding="8,6" Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BtnSecondaryFgBrush}" 
+                                                        BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" 
+                                                        FontSize="11" IsEnabled="False" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                                <Button Grid.Column="2" Content="↺ Restaurar" Click="RestoreOriginalMask_Click" 
+                                                        Padding="8,6" Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BtnSecondaryFgBrush}" 
+                                                        BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" 
+                                                        FontSize="11" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                            </Grid>
+
+                                            <Button x:Name="BtnRecalculate" Content="📐 Recalcular Métricas da Máscara" Click="RecalculateMetrics_Click"
+                                                    Padding="12,10" Background="#16A34A" Foreground="#FFFFFF" FontWeight="Bold" 
+                                                    FontSize="12" BorderThickness="0" Cursor="Hand">
+                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+                    </TabControl>
+
+                    <!-- Box de Alerta Científico / Metrológico -->
+                    <Border Grid.Row="1" x:Name="WarningBox" Visibility="Collapsed" Background="#FFF7E6" BorderBrush="#F59E0B" 
+                            BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,10,0,0">
+                        <StackPanel>
+                            <TextBlock Text="⚠️ Validação e Alerta Metrológico" FontWeight="Bold" Foreground="#B45309" FontSize="11" Margin="0,0,0,3"/>
+                            <TextBlock x:Name="TxtWarningMessage" TextWrapping="Wrap" Foreground="#92400E" FontSize="11"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
             </Border>
 
-            <!-- CENTER PANE: Visualizador Microscópico com Zoom, Pan e Camadas -->
-            <Border Grid.Column="2" Background="#05080E" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+            <!-- CENTER PANE: Visualizador Microscópico Clínico -->
+            <Border Grid.Column="2" Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12" ClipToBounds="True">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/> <!-- Viewer Toolbar -->
@@ -173,93 +376,111 @@
                     </Grid.RowDefinitions>
 
                     <!-- Viewer Toolbar -->
-                    <Border Grid.Row="0" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,0,0,1" Padding="10,6">
+                    <Border Grid.Row="0" Background="{DynamicResource ViewerToolbarBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1" Padding="14,8">
                         <DockPanel>
                             <!-- View Toggles -->
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="Camadas:" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="Camadas:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <CheckBox x:Name="ChkShowOverlay" Content="Contornos" IsChecked="True" 
                                           Checked="LayerVisibility_Changed" Unchecked="LayerVisibility_Changed"
-                                          Foreground="#E2E8F0" FontSize="11" Margin="0,0,12,0"/>
+                                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" Margin="0,0,12,0"/>
                                 <CheckBox x:Name="ChkShowMask" Content="Máscara (Alpha)" IsChecked="True" 
                                           Checked="LayerVisibility_Changed" Unchecked="LayerVisibility_Changed"
-                                          Foreground="#E2E8F0" FontSize="11" Margin="0,0,12,0"/>
+                                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" Margin="0,0,12,0"/>
                                 <CheckBox x:Name="ChkShowScaleBar" Content="Barra de Escala" IsChecked="True" 
                                           Checked="LayerVisibility_Changed" Unchecked="LayerVisibility_Changed"
-                                          Foreground="#E2E8F0" FontSize="11" Margin="0,0,16,0"/>
+                                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" Margin="0,0,16,0"/>
 
-                                <TextBlock Text="Opacidade:" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                <TextBlock Text="Opacidade:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                 <Slider x:Name="SliderMaskAlpha" Minimum="0" Maximum="1" Value="0.4" Width="80" 
                                         ValueChanged="SliderMaskAlpha_ValueChanged" VerticalAlignment="Center"/>
                             </StackPanel>
 
                             <!-- Zoom Tools -->
                             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Content="➖" Click="ZoomOut_Click" Padding="6,2" Background="#1E293B" Foreground="White" BorderThickness="0" Margin="2,0"/>
+                                <Button Content="➖" Click="ZoomOut_Click" Padding="8,3" Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BtnSecondaryFgBrush}" BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" Margin="2,0"/>
                                 <TextBlock x:Name="TxtZoomLevel" Text="100%" Width="46" TextAlignment="Center" 
-                                           VerticalAlignment="Center" FontSize="11" Foreground="#94A3B8"/>
-                                <Button Content="➕" Click="ZoomIn_Click" Padding="6,2" Background="#1E293B" Foreground="White" BorderThickness="0" Margin="2,0"/>
-                                <Button Content="Ajustar" Click="ZoomFit_Click" Padding="8,2" Background="#1E293B" Foreground="White" BorderThickness="0" Margin="6,0,0,0" FontSize="11"/>
-                                <Button Content="1:1" Click="ZoomReset_Click" Padding="8,2" Background="#1E293B" Foreground="White" BorderThickness="0" Margin="4,0,0,0" FontSize="11"/>
+                                           VerticalAlignment="Center" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <Button Content="➕" Click="ZoomIn_Click" Padding="8,3" Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BtnSecondaryFgBrush}" BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" Margin="2,0"/>
+                                <Button Content="Ajustar" Click="ZoomFit_Click" Padding="10,3" Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BrandTitleBrush}" BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" Margin="6,0,0,0" FontSize="11" FontWeight="SemiBold"/>
+                                <Button Content="1:1" Click="ZoomReset_Click" Padding="10,3" Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BrandTitleBrush}" BorderBrush="{DynamicResource BtnSecondaryBorderBrush}" BorderThickness="1" Margin="4,0,0,0" FontSize="11" FontWeight="SemiBold"/>
                             </StackPanel>
                         </DockPanel>
                     </Border>
 
                     <!-- Interactive Microscopic Canvas -->
-                    <Border Grid.Row="1" ClipToBounds="True" Background="#030712">
-                        <Canvas x:Name="ViewportCanvas" Background="Transparent" 
-                                MouseWheel="Viewport_MouseWheel"
-                                MouseLeftButtonDown="Viewport_MouseLeftButtonDown"
-                                MouseLeftButtonUp="Viewport_MouseLeftButtonUp"
-                                MouseMove="Viewport_MouseMove"
-                                MouseRightButtonDown="Viewport_MouseRightButtonDown"
-                                MouseRightButtonUp="Viewport_MouseRightButtonUp"
-                                Cursor="Arrow">
-                            
-                            <!-- Container com Transformações de Zoom e Pan -->
-                            <Grid x:Name="ImageContainer" Canvas.Left="0" Canvas.Top="0">
-                                <Grid.RenderTransform>
-                                    <TransformGroup>
-                                        <ScaleTransform x:Name="ViewportScale" ScaleX="1.0" ScaleY="1.0"/>
-                                        <TranslateTransform x:Name="ViewportTranslate" X="0" Y="0"/>
-                                    </TransformGroup>
-                                </Grid.RenderTransform>
+                    <Border Grid.Row="1" ClipToBounds="True" Background="{DynamicResource CanvasBgBrush}">
+                        <Grid>
+                            <Canvas x:Name="ViewportCanvas" Background="Transparent" 
+                                    MouseWheel="Viewport_MouseWheel"
+                                    MouseLeftButtonDown="Viewport_MouseLeftButtonDown"
+                                    MouseLeftButtonUp="Viewport_MouseLeftButtonUp"
+                                    MouseMove="Viewport_MouseMove"
+                                    MouseRightButtonDown="Viewport_MouseRightButtonDown"
+                                    MouseRightButtonUp="Viewport_MouseRightButtonUp"
+                                    Cursor="Arrow">
+                                
+                                <!-- Container com Transformações de Zoom e Pan -->
+                                <Grid x:Name="ImageContainer" Canvas.Left="0" Canvas.Top="0">
+                                    <Grid.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform x:Name="ViewportScale" ScaleX="1.0" ScaleY="1.0"/>
+                                            <TranslateTransform x:Name="ViewportTranslate" X="0" Y="0"/>
+                                        </TransformGroup>
+                                    </Grid.RenderTransform>
 
-                                <!-- Camada 0: Imagem Bruta Original (Imutável) -->
-                                <Image x:Name="ImgSource" Stretch="None"/>
+                                    <!-- Camada 0: Imagem Bruta Original (Imutável) -->
+                                    <Image x:Name="ImgSource" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
 
-                                <!-- Camada 1: Máscara Translúcida Editável (WriteableBitmap) -->
-                                <Image x:Name="ImgMaskLayer" Stretch="None" Opacity="0.4"/>
+                                    <!-- Camada 1: Máscara Translúcida Editável (WriteableBitmap) -->
+                                    <Image x:Name="ImgMaskLayer" Stretch="Fill" Opacity="0.4" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
 
-                                <!-- Camada 2: Imagem Anotada com Contornos -->
-                                <Image x:Name="ImgOverlay" Stretch="None" Visibility="Visible"/>
+                                    <!-- Camada 2: Imagem Anotada com Contornos -->
+                                    <Image x:Name="ImgOverlay" Stretch="Fill" Visibility="Visible" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
 
-                                <!-- Camada 3: Régua de Calibração / Desenho Vetorial -->
-                                <Line x:Name="RulerLine" Stroke="#FBBF24" StrokeThickness="2" StrokeDashArray="2 2" Visibility="Collapsed"/>
-                            </Grid>
+                                    <!-- Camada 3: Régua de Calibração / Desenho Vetorial -->
+                                    <Line x:Name="RulerLine" Stroke="#1D8CF8" StrokeThickness="3" StrokeDashArray="3 2" Visibility="Collapsed"/>
+                                </Grid>
 
-                            <!-- Camada de Interface Fixa sobre o Canvas: Barra de Escala Gráfica -->
-                            <Border x:Name="ScaleBarOverlay" Canvas.Left="20" Canvas.Bottom="20" 
-                                    Background="#99000000" CornerRadius="4" Padding="8,4" Visibility="Collapsed">
+                                <!-- Camada de Interface Fixa sobre o Canvas: Barra de Escala Gráfica -->
+                                <Border x:Name="ScaleBarOverlay" Canvas.Left="20" Canvas.Bottom="20" 
+                                        Background="{DynamicResource ScaleBarOverlayBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Visibility="Collapsed">
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <Border x:Name="ScaleBarLine" Background="{DynamicResource ScaleBarLineBrush}" Height="4" Width="100" HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="ScaleBarLabel" Text="50 μm" Foreground="{DynamicResource ScaleBarTextBrush}" FontSize="11" 
+                                                   FontWeight="Bold" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Canvas>
+
+                            <!-- Drop Zone / Tela de Acolhimento Clean & Clínica -->
+                            <Border x:Name="DropZoneBorder" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                    Background="{DynamicResource DropZoneBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="2" CornerRadius="16" 
+                                    Padding="40,32" MaxWidth="460">
                                 <StackPanel HorizontalAlignment="Center">
-                                    <Border x:Name="ScaleBarLine" Background="White" Height="4" Width="100" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="ScaleBarLabel" Text="50 μm" Foreground="White" FontSize="11" 
-                                               FontWeight="Bold" HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                                    <TextBlock Text="🔬" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                                    <TextBlock Text="Arraste uma imagem de microscopia aqui" 
+                                               FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" 
+                                               HorizontalAlignment="Center" Margin="0,0,0,6" TextAlignment="Center"/>
+                                    <TextBlock Text="Formatos suportados: MEV, PNG, TIFF, JPG ou BMP&#x0a;O arquivo original é mantido 100% imutável para integridade científica." 
+                                               FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" 
+                                               TextAlignment="Center" Margin="0,0,0,18"/>
+                                    <Button Content="📂 Escolher Arquivo do Computador" Click="ChooseImage_Click" 
+                                            Padding="18,10" Background="#1D8CF8" Foreground="#FFFFFF" BorderThickness="0" 
+                                            FontWeight="Bold" FontSize="12" HorizontalAlignment="Center" Cursor="Hand">
+                                        <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
+                                    </Button>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Placeholder para quando não há imagem -->
-                            <TextBlock x:Name="TxtEmptyPlaceholder" 
-                                       Text="Nenhuma imagem carregada.&#x0a;Clique em 'Abrir Imagem' para iniciar a análise." 
-                                       Canvas.Left="150" Canvas.Top="200"
-                                       Foreground="#475569" FontSize="14" TextAlignment="Center"/>
-                        </Canvas>
+                            <TextBlock x:Name="TxtEmptyPlaceholder" Visibility="Collapsed"/>
+                        </Grid>
                     </Border>
                 </Grid>
             </Border>
 
-            <!-- RIGHT PANE: Métricas Científicas, Auditoria e Histórico -->
-            <Border Grid.Column="4" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="14">
+            <!-- RIGHT PANE: Resultados Científicos, Auditoria e Proveniência -->
+            <Border Grid.Column="4" Background="{DynamicResource CardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/> <!-- Metrics Cards -->
@@ -269,26 +490,26 @@
 
                     <!-- Metrics Cards -->
                     <StackPanel Grid.Row="0">
-                        <TextBlock Text="RESULTADOS CIENTÍFICOS" FontWeight="Bold" FontSize="12" Foreground="#38BDF8" Margin="0,0,0,10"/>
+                        <TextBlock Text="Resultados científicos" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource BrandTitleBrush}" Margin="0,0,0,12"/>
                         
                         <Grid Margin="0,0,0,10">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="10"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="#1E293B" CornerRadius="6" Padding="10">
+                            <Border Grid.Column="0" Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                 <StackPanel>
-                                    <TextBlock x:Name="LblMetric1Title" Text="Diâmetro Mediano" FontSize="10" Foreground="#94A3B8"/>
-                                    <TextBlock x:Name="ValMetric1" Text="--" FontSize="17" FontWeight="Bold" Foreground="#38BDF8" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="LblMetric1Title" Text="Diâmetro Mediano" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="ValMetric1" Text="--" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource BrandTitleBrush}" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="2" Background="#1E293B" CornerRadius="6" Padding="10">
+                            <Border Grid.Column="2" Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
                                 <StackPanel>
-                                    <TextBlock x:Name="LblMetric2Title" Text="Desvio Padrão" FontSize="10" Foreground="#94A3B8"/>
-                                    <TextBlock x:Name="ValMetric2" Text="--" FontSize="17" FontWeight="Bold" Foreground="#E2E8F0" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="LblMetric2Title" Text="Desvio Padrão" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="ValMetric2" Text="--" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -296,58 +517,58 @@
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="10"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="#1E293B" CornerRadius="6" Padding="8">
+                            <Border Grid.Column="0" Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
                                 <StackPanel>
-                                    <TextBlock Text="Latência Wall" FontSize="10" Foreground="#94A3B8"/>
-                                    <TextBlock x:Name="ValLatency" Text="-- ms" FontSize="14" FontWeight="SemiBold" Foreground="#A78BFA" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Latência Wall" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock x:Name="ValLatency" Text="-- ms" FontSize="14" FontWeight="SemiBold" Foreground="#6D28D9" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="2" Background="#1E293B" CornerRadius="6" Padding="8">
+                            <Border Grid.Column="2" Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
                                 <StackPanel>
-                                    <TextBlock Text="Memória RSS" FontSize="10" Foreground="#94A3B8"/>
-                                    <TextBlock x:Name="ValMemory" Text="-- MB" FontSize="14" FontWeight="SemiBold" Foreground="#4ADE80" Margin="0,2,0,0"/>
+                                    <TextBlock Text="Memória RSS" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock x:Name="ValMemory" Text="-- MB" FontSize="14" FontWeight="SemiBold" Foreground="#16A34A" Margin="0,2,0,0"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
                     </StackPanel>
 
                     <!-- Resumo Estatístico Expandido -->
-                    <Border Grid.Row="1" Background="#1E293B" CornerRadius="6" Padding="10" Margin="0,0,0,14">
+                    <Border Grid.Row="1" Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
                         <StackPanel>
-                            <TextBlock Text="Estatísticas Descritivas:" FontWeight="SemiBold" FontSize="11" Foreground="#CBD5E1" Margin="0,0,0,6"/>
-                            <TextBlock x:Name="TxtStatsDetail" Text="Aguardando processamento..." FontSize="11" Foreground="#94A3B8" TextWrapping="Wrap"/>
+                            <TextBlock Text="Estatísticas descritivas" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                            <TextBlock x:Name="TxtStatsDetail" Text="Aguardando processamento..." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Registro de Auditoria / Parâmetros do Projeto -->
+                    <!-- Registro de Auditoria e Proveniência Científica -->
                     <Grid Grid.Row="2">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <TextBlock Text="Registro de Auditoria e Proveniência:" FontWeight="SemiBold" FontSize="11" Foreground="#94A3B8" Margin="0,0,0,4"/>
-                        <TextBox Grid.Row="1" x:Name="TxtAuditLog" Background="#1E293B" Foreground="#94A3B8" IsReadOnly="True" 
+                        <TextBlock Text="Registro de auditoria e rastreabilidade:" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBox Grid.Row="1" x:Name="TxtAuditLog" Background="{DynamicResource AuditBgBrush}" Foreground="{DynamicResource AuditFgBrush}" IsReadOnly="True" 
                                  FontFamily="Consolas" FontSize="10" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" 
-                                 BorderBrush="#334155" Padding="8" Text="Sistema iniciado. Pronto para nova análise."/>
+                                 BorderBrush="{DynamicResource BorderSubtleBrush}" Padding="8" Text="Sistema iniciado. Pronto para nova análise."/>
                     </Grid>
                 </Grid>
             </Border>
         </Grid>
 
         <!-- Status Bar -->
-        <Border Grid.Row="2" Background="#0F172A" BorderBrush="#1E293B" BorderThickness="0,1,0,0" Padding="14,6">
+        <Border Grid.Row="2" Background="{DynamicResource TopBarBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,1,0,0" Padding="18,7">
             <DockPanel>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock x:Name="StatusText" Text="Pronto" FontSize="11" Foreground="#94A3B8"/>
-                    <TextBlock Text=" | " Foreground="#475569" FontSize="11" Margin="8,0"/>
-                    <TextBlock x:Name="StatusCursorPos" Text="X: --, Y: --" FontSize="11" Foreground="#64748B"/>
+                    <TextBlock x:Name="StatusText" Text="Pronto" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text=" | " Foreground="{DynamicResource BorderSubtleBrush}" FontSize="11" Margin="8,0"/>
+                    <TextBlock x:Name="StatusCursorPos" Text="X: --, Y: --" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
-                <TextBlock DockPanel.Dock="Right" Text="SwiftMev Alpha 0.4 • Rigor Metrológico • Offline" FontSize="11" Foreground="#64748B" HorizontalAlignment="Right"/>
+                <TextBlock DockPanel.Dock="Right" Text="SwiftMev Alpha 0.5 • Software Científico • Offline" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
             </DockPanel>
         </Border>
     </Grid>

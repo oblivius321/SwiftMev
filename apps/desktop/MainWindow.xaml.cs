@@ -25,7 +25,9 @@ public partial class MainWindow : Window
     private byte[]? _originalMaskBytes;
     private int _imgWidth;
     private int _imgHeight;
-    private double _umPerPixel = 1.0;
+    private double _umPerPixel = 0.0;
+    private bool _isCalibrated = false;
+    private readonly System.Collections.Generic.Stack<byte[]> _undoStack = new();
     private JsonElement _lastMetricsJson;
 
     // Estado do Pan e Zoom
@@ -50,26 +52,98 @@ public partial class MainWindow : Window
         InitializeComponent();
         Loaded += MainWindow_Loaded;
         SourceInitialized += MainWindow_SourceInitialized;
-        StateChanged += (s, e) =>
-        {
-            if (BtnMaximize != null) BtnMaximize.Content = WindowState == WindowState.Maximized ? "🗗" : "🗖";
-        };
+        UpdateCalibrationDisplay();
     }
 
+    private bool _isDarkMode = false;
+
     private void MainWindow_SourceInitialized(object? sender, EventArgs e)
+    {
+        SetDwmTheme(_isDarkMode);
+    }
+
+    private void ThemeToggle_Click(object sender, RoutedEventArgs e)
+    {
+        SetTheme(!_isDarkMode);
+    }
+
+    private void SetTheme(bool dark)
+    {
+        _isDarkMode = dark;
+        if (dark)
+        {
+            Resources["WindowBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0B0F17"));
+            Resources["TopBarBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"));
+            Resources["BorderSubtleBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E293B"));
+            Resources["CardBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"));
+            Resources["SubCardBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E293B"));
+            Resources["TextPrimaryBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F1F5F9"));
+            Resources["TextSecondaryBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
+            Resources["BrandTitleBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#38BDF8"));
+            Resources["CanvasBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#030712"));
+            Resources["ViewerToolbarBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"));
+            Resources["DropZoneBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0A101D"));
+            Resources["TabInactiveBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E293B"));
+            Resources["TabActiveBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"));
+            Resources["InputBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0B0F17"));
+            Resources["InputFgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+            Resources["BtnSecondaryBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E293B"));
+            Resources["BtnSecondaryFgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E8F0"));
+            Resources["BtnSecondaryBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#334155"));
+            Resources["AuditBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1E293B"));
+            Resources["AuditFgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
+            Resources["ScaleBarLineBrush"] = new SolidColorBrush(Colors.White);
+            Resources["ScaleBarTextBrush"] = new SolidColorBrush(Colors.White);
+            Resources["ScaleBarOverlayBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#99000000"));
+
+            if (BtnThemeToggle != null) BtnThemeToggle.Content = "☀️ Modo Claro";
+            SetDwmTheme(true);
+        }
+        else
+        {
+            Resources["WindowBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F4F7FB"));
+            Resources["TopBarBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
+            Resources["BorderSubtleBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D9E2EC"));
+            Resources["CardBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
+            Resources["SubCardBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+            Resources["TextPrimaryBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1F2937"));
+            Resources["TextSecondaryBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5B6B7A"));
+            Resources["BrandTitleBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1565C0"));
+            Resources["CanvasBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EAEFF5"));
+            Resources["ViewerToolbarBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+            Resources["DropZoneBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
+            Resources["TabInactiveBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E2E8F0"));
+            Resources["TabActiveBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
+            Resources["InputBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
+            Resources["InputFgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1F2937"));
+            Resources["BtnSecondaryBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
+            Resources["BtnSecondaryFgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1F2937"));
+            Resources["BtnSecondaryBorderBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D9E2EC"));
+            Resources["AuditBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F8FAFC"));
+            Resources["AuditFgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#334155"));
+            Resources["ScaleBarLineBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"));
+            Resources["ScaleBarTextBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"));
+            Resources["ScaleBarOverlayBgBrush"] = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CCFFFFFF"));
+
+            if (BtnThemeToggle != null) BtnThemeToggle.Content = "🌙 Modo Escuro";
+            SetDwmTheme(false);
+        }
+        UpdateCalibrationDisplay();
+    }
+
+    private void SetDwmTheme(bool dark)
     {
         try
         {
             var handle = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-            int darkMode = 1;
-            DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref darkMode, sizeof(int));
-            int darkModeLegacy = 1;
-            DwmSetWindowAttribute(handle, 19, ref darkModeLegacy, sizeof(int));
+            if (handle != IntPtr.Zero)
+            {
+                int val = dark ? 1 : 0;
+                DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref val, sizeof(int));
+                DwmSetWindowAttribute(handle, 19, ref val, sizeof(int));
+            }
         }
-        catch
-        {
-            // Fallback silencioso se versão do Windows não suportar DWM dark mode
-        }
+        catch { }
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -92,7 +166,6 @@ public partial class MainWindow : Window
         if (e.ClickCount == 2)
         {
             WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-            if (BtnMaximize != null) BtnMaximize.Content = WindowState == WindowState.Maximized ? "🗗" : "🗖";
         }
         else if (e.LeftButton == MouseButtonState.Pressed)
         {
@@ -114,15 +187,35 @@ public partial class MainWindow : Window
         }
     }
 
-    private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
-
-    private void Maximize_Click(object sender, RoutedEventArgs e)
+    private void Window_DragOver(object sender, DragEventArgs e)
     {
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-        if (BtnMaximize != null) BtnMaximize.Content = WindowState == WindowState.Maximized ? "🗗" : "🗖";
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            e.Effects = DragDropEffects.Copy;
+        else
+            e.Effects = DragDropEffects.None;
+        e.Handled = true;
     }
 
-    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+    private void Window_Drop(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files != null && files.Length > 0)
+            {
+                var file = files[0];
+                var ext = System.IO.Path.GetExtension(file).ToLowerInvariant();
+                if (ext is ".png" or ".jpg" or ".jpeg" or ".tif" or ".tiff" or ".bmp")
+                {
+                    LoadImageFile(file);
+                }
+                else
+                {
+                    ShowWarning($"Formato não suportado: {ext}. Formatos aceitos: PNG, JPG, TIFF, BMP.");
+                }
+            }
+        }
+    }
 
     // ─────────────────────────────────────────────────────────────
     // 1. CARREGAMENTO DE IMAGEM & INICIALIZAÇÃO
@@ -153,11 +246,26 @@ public partial class MainWindow : Window
             bitmap.EndInit();
             bitmap.Freeze();
 
-            _sourceBitmap = bitmap;
             _imgWidth = bitmap.PixelWidth;
             _imgHeight = bitmap.PixelHeight;
 
-            ImgSource.Source = bitmap;
+            // Se o arquivo contiver metadados de DPI diferentes de 96 (comum em TIFFs científicos de 200/300 DPI),
+            // normalizamos a representação de tela para 96 DPI exatos, garantindo perfeito alinhamento pixel a pixel
+            // entre a imagem original, a máscara WriteableBitmap e a camada de contornos vetoriais.
+            if (bitmap.DpiX != 96.0 || bitmap.DpiY != 96.0)
+            {
+                int stride = (_imgWidth * bitmap.Format.BitsPerPixel + 7) / 8;
+                byte[] pixelBuffer = new byte[stride * _imgHeight];
+                bitmap.CopyPixels(pixelBuffer, stride, 0);
+                _sourceBitmap = BitmapSource.Create(_imgWidth, _imgHeight, 96, 96, bitmap.Format, bitmap.Palette, pixelBuffer, stride);
+                _sourceBitmap.Freeze();
+            }
+            else
+            {
+                _sourceBitmap = bitmap;
+            }
+
+            ImgSource.Source = _sourceBitmap;
             ImgSource.Width = _imgWidth;
             ImgSource.Height = _imgHeight;
 
@@ -175,6 +283,7 @@ public partial class MainWindow : Window
             ImgOverlay.Height = _imgHeight;
 
             TxtEmptyPlaceholder.Visibility = Visibility.Collapsed;
+            if (DropZoneBorder != null) DropZoneBorder.Visibility = Visibility.Collapsed;
             WarningBox.Visibility = Visibility.Collapsed;
 
             ZoomFit();
@@ -325,7 +434,9 @@ public partial class MainWindow : Window
         if (double.TryParse(inputPrompt.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var lengthUm) && lengthUm > 0)
         {
             _umPerPixel = lengthUm / lengthPx;
+            _isCalibrated = true;
             TxtCalibration.Text = _umPerPixel.ToString("0.######", CultureInfo.InvariantCulture);
+            UpdateCalibrationDisplay();
             LogAudit($"Calibração por régua aplicada: {lengthPx:F1} px = {lengthUm:F2} μm => Escala: {_umPerPixel:F6} μm/px.");
             StatusText.Text = $"Calibração definida: {_umPerPixel:F4} μm/px";
             UpdateScaleBar();
@@ -353,7 +464,68 @@ public partial class MainWindow : Window
         if (double.TryParse(TxtCalibration.Text.Trim().Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var calib) && calib > 0)
         {
             _umPerPixel = calib;
+            _isCalibrated = true;
+            UpdateCalibrationDisplay();
             UpdateScaleBar();
+        }
+        else
+        {
+            _isCalibrated = false;
+            UpdateCalibrationDisplay();
+        }
+    }
+
+    private void ConfirmCalibration_Click(object sender, RoutedEventArgs e)
+    {
+        var text = TxtCalibration.Text.Trim().Replace(',', '.');
+        if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var cal) && cal > 0)
+        {
+            _umPerPixel = cal;
+            _isCalibrated = true;
+            UpdateCalibrationDisplay();
+            UpdateScaleBar();
+            WarningBox.Visibility = Visibility.Collapsed;
+            LogAudit($"Calibração espacial confirmada manualmente: {_umPerPixel:F6} μm/pixel.");
+            StatusText.Text = $"Calibração definida: {_umPerPixel:F4} μm/px";
+        }
+        else
+        {
+            ShowWarning("Insira um valor numérico válido maior que zero (ex: 0.5 ou 1.25) para confirmar a escala.");
+        }
+    }
+
+    private void GoToCalibration_Click(object sender, RoutedEventArgs e)
+    {
+        if (TabCalibration != null) TabCalibration.IsSelected = true;
+    }
+
+    private void UpdateCalibrationDisplay()
+    {
+        if (BadgeCalibStatusAnalyse != null)
+        {
+            if (_isCalibrated && _umPerPixel > 0)
+            {
+                BadgeCalibStatusAnalyse.Text = $"✓ Calibrado: {_umPerPixel:F4} μm/px";
+                BadgeCalibStatusAnalyse.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#047857"));
+            }
+            else
+            {
+                BadgeCalibStatusAnalyse.Text = "⚠️ Calibração Pendente";
+                BadgeCalibStatusAnalyse.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#B45309"));
+            }
+        }
+        if (BadgeCalibStatusTab != null)
+        {
+            if (_isCalibrated && _umPerPixel > 0)
+            {
+                BadgeCalibStatusTab.Text = $"✓ Escala Confirmada: {_umPerPixel:F4} μm/px";
+                BadgeCalibStatusTab.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#047857"));
+            }
+            else
+            {
+                BadgeCalibStatusTab.Text = "⚠️ Escala Não Definida";
+                BadgeCalibStatusTab.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E5484D"));
+            }
         }
     }
 
@@ -454,6 +626,7 @@ public partial class MainWindow : Window
         }
         else if (ToolBrush.IsChecked == true || ToolEraser.IsChecked == true)
         {
+            PushUndoState();
             _isDrawing = true;
             ViewportCanvas.CaptureMouse();
             PaintOnMask(posInImage, ToolBrush.IsChecked == true);
@@ -553,6 +726,53 @@ public partial class MainWindow : Window
         _editableMaskBitmap.Unlock();
     }
 
+    private void PushUndoState()
+    {
+        if (_editableMaskBitmap == null) return;
+        if (_undoStack.Count > 10)
+        {
+            var list = new System.Collections.Generic.List<byte[]>(_undoStack);
+            list.RemoveAt(list.Count - 1);
+            _undoStack.Clear();
+            for (int i = list.Count - 1; i >= 0; i--) _undoStack.Push(list[i]);
+        }
+        _undoStack.Push(GetMaskBytesFromWriteableBitmap());
+        if (BtnUndo != null) BtnUndo.IsEnabled = true;
+    }
+
+    private void UndoMask_Click(object sender, RoutedEventArgs e)
+    {
+        if (_undoStack.Count > 0 && _editableMaskBitmap != null)
+        {
+            var prev = _undoStack.Pop();
+            LoadMaskBytesIntoWriteableBitmap(prev);
+            StatusText.Text = "Último traço desfeito.";
+            if (BtnUndo != null) BtnUndo.IsEnabled = _undoStack.Count > 0;
+        }
+    }
+
+    private byte[] GetMaskBytesFromWriteableBitmap()
+    {
+        if (_editableMaskBitmap == null) return Array.Empty<byte>();
+        byte[] grayMask = new byte[_imgWidth * _imgHeight];
+        _editableMaskBitmap.Lock();
+        unsafe
+        {
+            uint* pSrc = (uint*)_editableMaskBitmap.BackBuffer;
+            int stride = _editableMaskBitmap.BackBufferStride / 4;
+            for (int y = 0; y < _imgHeight; y++)
+            {
+                for (int x = 0; x < _imgWidth; x++)
+                {
+                    uint col = *(pSrc + y * stride + x);
+                    grayMask[y * _imgWidth + x] = ((col >> 24) > 127) ? (byte)255 : (byte)0;
+                }
+            }
+        }
+        _editableMaskBitmap.Unlock();
+        return grayMask;
+    }
+
     private void RestoreOriginalMask_Click(object sender, RoutedEventArgs e)
     {
         if (_originalMaskBytes == null || _editableMaskBitmap == null)
@@ -561,6 +781,7 @@ public partial class MainWindow : Window
             return;
         }
 
+        PushUndoState();
         LoadMaskBytesIntoWriteableBitmap(_originalMaskBytes);
         LogAudit("Máscara restaurada para o estado original do algoritmo automático.");
         StatusText.Text = "Máscara original restaurada.";
@@ -580,6 +801,8 @@ public partial class MainWindow : Window
         if (!ValidateCalibrationInput()) return;
 
         BtnRunAuto.IsEnabled = false;
+        BtnRunAuto.Content = "⏳ Processando...";
+        if (ProgressBarProcessing != null) ProgressBarProcessing.Visibility = Visibility.Visible;
         WarningBox.Visibility = Visibility.Collapsed;
         StatusText.Text = "Executando segmentação científica...";
 
@@ -593,6 +816,7 @@ public partial class MainWindow : Window
             var modTag = ((ComboBoxItem)CmbModule.SelectedItem).Tag?.ToString() ?? "fiber";
             var methodTag = ((ComboBoxItem)CmbMethod.SelectedItem).Tag?.ToString() ?? "otsu";
 
+            var engineDir = System.IO.Path.Combine(repoDir, "engine");
             var startInfo = new ProcessStartInfo(pythonExe)
             {
                 WorkingDirectory = repoDir,
@@ -603,6 +827,7 @@ public partial class MainWindow : Window
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            startInfo.Environment["PYTHONPATH"] = engineDir;
 
             startInfo.ArgumentList.Add("-m");
             startInfo.ArgumentList.Add("swiftmev.cli");
@@ -651,6 +876,8 @@ public partial class MainWindow : Window
         finally
         {
             BtnRunAuto.IsEnabled = true;
+            BtnRunAuto.Content = "⚡ Processar Imagem";
+            if (ProgressBarProcessing != null) ProgressBarProcessing.Visibility = Visibility.Collapsed;
         }
     }
 
@@ -664,6 +891,7 @@ public partial class MainWindow : Window
         if (!ValidateCalibrationInput()) return;
 
         BtnRecalculate.IsEnabled = false;
+        BtnRecalculate.Content = "⏳ Recalculando...";
         StatusText.Text = "Recalculando métricas a partir da máscara editada...";
 
         try
@@ -679,6 +907,7 @@ public partial class MainWindow : Window
             var pythonExe = ResolvePythonExecutable(repoDir);
             var modTag = ((ComboBoxItem)CmbModule.SelectedItem).Tag?.ToString() ?? "fiber";
 
+            var engineDir = System.IO.Path.Combine(repoDir, "engine");
             var startInfo = new ProcessStartInfo(pythonExe)
             {
                 WorkingDirectory = repoDir,
@@ -689,6 +918,7 @@ public partial class MainWindow : Window
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            startInfo.Environment["PYTHONPATH"] = engineDir;
 
             startInfo.ArgumentList.Add("-m");
             startInfo.ArgumentList.Add("swiftmev.cli");
@@ -730,6 +960,7 @@ public partial class MainWindow : Window
         finally
         {
             BtnRecalculate.IsEnabled = true;
+            BtnRecalculate.Content = "📐 Recalcular Métricas da Máscara";
         }
     }
 
@@ -741,16 +972,10 @@ public partial class MainWindow : Window
             _lastMetricsJson = doc.RootElement.Clone();
             var root = _lastMetricsJson;
 
-            // Carregar Overlay
+            // Carregar Overlay (com fundo transparente para não ocultar a camada de máscara translúcida)
             if (root.TryGetProperty("overlay", out var overProp) && File.Exists(overProp.GetString()))
             {
-                var bmp = new BitmapImage();
-                bmp.BeginInit();
-                bmp.CacheOption = BitmapCacheOption.OnLoad;
-                bmp.UriSource = new Uri(overProp.GetString()!, UriKind.Absolute);
-                bmp.EndInit();
-                bmp.Freeze();
-                ImgOverlay.Source = bmp;
+                ImgOverlay.Source = CreateTransparentContourBitmap(overProp.GetString()!);
             }
 
             // Carregar Máscara Binária
@@ -765,6 +990,7 @@ public partial class MainWindow : Window
             // Cards de Métricas
             if (root.TryGetProperty("metrics", out var metrics))
             {
+                ValMetric1.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1565C0"));
                 if (modTag == "fiber")
                 {
                     LblMetric1Title.Text = "Diâmetro Mediano";
@@ -785,14 +1011,19 @@ public partial class MainWindow : Window
                                           $"• Amostras no Esqueleto: {pts:N0} pontos\n" +
                                           $"• Calibração: {_umPerPixel:F4} μm/px";
 
-                    if (metrics.TryGetProperty("resolution_warning", out var warn) && warn.GetBoolean())
+                    if (metrics.TryGetProperty("resolution_warning", out var warn) && warn.ValueKind == JsonValueKind.True)
                     {
-                        var msg = metrics.TryGetProperty("warning_message", out var wmsg) ? wmsg.GetString() : "Alerta de discretização.";
+                        var msg = metrics.TryGetProperty("warning_message", out var wmsg) && wmsg.ValueKind == JsonValueKind.String ? wmsg.GetString() : "Alerta de discretização.";
                         ShowWarning(msg ?? "Resolução de imagem no limiar metrológico.");
+                    }
+                    else
+                    {
+                        WarningBox.Visibility = Visibility.Collapsed;
                     }
                 }
                 else
                 {
+                    WarningBox.Visibility = Visibility.Collapsed;
                     LblMetric1Title.Text = "Área Livre (Scratch)";
                     LblMetric2Title.Text = "Área Descoberta";
 
@@ -836,9 +1067,62 @@ public partial class MainWindow : Window
 
         ShowWarning($"Validação Científica Rejeitada: {msg}");
         ValMetric1.Text = "INVÁLIDO";
+        ValMetric1.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E5484D"));
         ValMetric2.Text = "--";
         StatusText.Text = "Operação bloqueada por critério metrológico.";
         LogAudit($"[FALHA DE VALIDAÇÃO]\n{stderr}");
+    }
+
+    private BitmapSource? CreateTransparentContourBitmap(string overlayPath)
+    {
+        try
+        {
+            var src = new BitmapImage();
+            src.BeginInit();
+            src.CacheOption = BitmapCacheOption.OnLoad;
+            src.UriSource = new Uri(overlayPath, UriKind.Absolute);
+            src.EndInit();
+
+            var bgra = new FormatConvertedBitmap(src, PixelFormats.Bgra32, null, 0);
+            int width = bgra.PixelWidth;
+            int height = bgra.PixelHeight;
+            int stride = width * 4;
+            byte[] pixels = new byte[height * stride];
+            bgra.CopyPixels(pixels, stride, 0);
+
+            for (int i = 0; i < pixels.Length; i += 4)
+            {
+                byte b = pixels[i];
+                byte g = pixels[i + 1];
+                byte r = pixels[i + 2];
+
+                // Os contornos gerados pelo OpenCV usam verde puro (B=0, G=255, R=0).
+                // O fundo da imagem original convertida para 3 canais é puramente cinza (B == G == R).
+                // Filtramos os pixels do contorno verde e tornamos o restante 100% transparente.
+                if (g > 50 && (g - r) > 25 && (g - b) > 25)
+                {
+                    pixels[i] = 0;       // B
+                    pixels[i + 1] = 255; // G
+                    pixels[i + 2] = 0;   // R
+                    pixels[i + 3] = 255; // A (opaco para o contorno verde)
+                }
+                else
+                {
+                    pixels[i] = 0;
+                    pixels[i + 1] = 0;
+                    pixels[i + 2] = 0;
+                    pixels[i + 3] = 0;   // 100% transparente
+                }
+            }
+
+            var result = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, stride);
+            result.Freeze();
+            return result;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -1125,9 +1409,10 @@ public partial class MainWindow : Window
     private bool ValidateCalibrationInput()
     {
         var text = TxtCalibration.Text.Trim().Replace(',', '.');
-        if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var cal) || cal <= 0 || double.IsNaN(cal))
+        if (string.IsNullOrWhiteSpace(text) || !_isCalibrated || !double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var cal) || cal <= 0 || double.IsNaN(cal))
         {
-            ShowWarning("Calibração espacial obrigatória. Informe um valor numérico real > 0 em μm/pixel.");
+            ShowWarning("Calibração espacial pendente! Para garantir rigor metrológico (SoftwareX), defina a escala física na aba 'Calibração' antes de processar.");
+            if (TabCalibration != null) TabCalibration.IsSelected = true;
             return false;
         }
         _umPerPixel = cal;
