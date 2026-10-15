@@ -9,6 +9,7 @@ Valida o contrato de execução entre a interface Desktop (C# WPF) e o motor cie
   5. Registro de parâmetros, versão e proveniência para auditoria
 """
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -19,6 +20,7 @@ import pytest
 
 _ROOT = Path(__file__).resolve().parent.parent
 _PYTHON = sys.executable
+_ENV = {**os.environ, "PYTHONPATH": str(_ROOT / "engine")}
 
 
 @pytest.fixture
@@ -41,7 +43,7 @@ def test_cli_fiber_success(sample_fiber_img, tmp_path):
         "--um-per-pixel", "0.5",
         "--save-mask",
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_ROOT))
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_ROOT), env=_ENV)
     assert res.returncode == 0, f"Stderr: {res.stderr}"
 
     data = json.loads(res.stdout)
@@ -63,7 +65,7 @@ def test_cli_rejects_invalid_calibration(sample_fiber_img, tmp_path):
         "--output", str(out_dir),
         "--um-per-pixel", "-0.5",
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_ROOT))
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_ROOT), env=_ENV)
     assert res.returncode == 2
     err_json = json.loads(res.stderr)
     assert err_json["status"] == "validation_error"
@@ -86,7 +88,7 @@ def test_cli_recalculates_from_custom_mask(sample_fiber_img, tmp_path):
         "--output", str(out_dir),
         "--um-per-pixel", "1.0",
     ]
-    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_ROOT))
+    res = subprocess.run(cmd, capture_output=True, text=True, cwd=str(_ROOT), env=_ENV)
     assert res.returncode == 0, f"Stderr: {res.stderr}"
 
     data = json.loads(res.stdout)

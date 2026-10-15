@@ -197,7 +197,7 @@
                                     <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,14">
                                         <StackPanel>
                                             <TextBlock Text="Módulo científico" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrandTitleBrush}" Margin="0,0,0,6"/>
-                                            <ComboBox x:Name="CmbModule" SelectedIndex="0" Padding="8,6" Margin="0,0,0,6" FontSize="12">
+                                            <ComboBox x:Name="CmbModule" SelectedIndex="0" Padding="8,6" Margin="0,0,0,6" FontSize="12" SelectionChanged="CmbModule_SelectionChanged">
                                                 <ComboBoxItem Content="🔬 Diâmetro de Fibras (MEV)" Tag="fiber"/>
                                                 <ComboBoxItem Content="🧫 Migração Celular (Scratch)" Tag="migration"/>
                                             </ComboBox>
@@ -212,10 +212,26 @@
                                             <TextBlock Text="Binarização e filtros" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrandTitleBrush}" Margin="0,0,0,6"/>
                                             
                                             <TextBlock Text="Método de limiarização:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                            <ComboBox x:Name="CmbMethod" SelectedIndex="0" Padding="8,6" Margin="0,0,0,10" FontSize="12">
+                                            <ComboBox x:Name="CmbMethod" SelectedIndex="0" Padding="8,6" Margin="0,0,0,10" FontSize="12" SelectionChanged="CmbMethod_SelectionChanged">
                                                 <ComboBoxItem Content="Otsu Global (Padrão Rigoroso)" Tag="otsu" ToolTip="Limiar estatístico ótimo para distribuição bimodal"/>
                                                 <ComboBoxItem Content="Sauvola Local (Adaptativo)" Tag="sauvola" ToolTip="Ideal para compensar gradientes e variações de iluminação"/>
+                                                <ComboBoxItem Content="🤖 U-Net IA (ONNX Runtime CPU)" Tag="ai" ToolTip="Segmentação experimental por rede neural com inferência por blocos sobrepostos (tiling)"/>
                                             </ComboBox>
+
+                                            <!-- Painel Informativo de IA (Exibido apenas quando método = ai) -->
+                                            <Border x:Name="PanelAiModelInfo" Visibility="Collapsed" Background="#FEF3C7" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,10">
+                                                <StackPanel>
+                                                    <DockPanel LastChildFill="False" Margin="0,0,0,4">
+                                                        <TextBlock Text="🤖 Modelo ONNX Ativo" FontWeight="Bold" FontSize="11" Foreground="#92400E"/>
+                                                        <Border DockPanel.Dock="Right" Background="#FDE68A" CornerRadius="4" Padding="6,2">
+                                                            <TextBlock Text="EXPERIMENTAL" FontSize="9" FontWeight="Bold" Foreground="#B45309"/>
+                                                        </Border>
+                                                    </DockPanel>
+                                                    <TextBlock x:Name="TxtAiModelName" Text="ONNX Minimal Mock (v0.1.0-mock)" FontSize="11" FontWeight="SemiBold" Foreground="#78350F"/>
+                                                    <TextBlock x:Name="TxtAiModelTask" Text="Tarefa: Nanofibras MEV (fiber_segmentation)" FontSize="10" Foreground="#92400E" Margin="0,2,0,4"/>
+                                                    <TextBlock Text="⚠️ Inferência experimental não validada para laudos científicos. Requer curadoria manual do pesquisador." FontSize="10" Foreground="#B45309" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Border>
 
                                             <CheckBox x:Name="ChkClahe" Content="CLAHE (Correção de Gradiente)" 
                                                       ToolTip="Equalização adaptativa para destacar microestruturas e fibras tênues"
@@ -349,6 +365,146 @@
                                                     FontSize="12" BorderThickness="0" Cursor="Hand">
                                                 <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="6"/></Style></Button.Resources>
                                             </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </ScrollViewer>
+                        </TabItem>
+
+                        <!-- TAB 4: Dataset Studio (Alpha 0.6B) -->
+                        <TabItem x:Name="TabStudio" Header="📦 Dataset Studio">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <StackPanel Margin="0,10,0,0">
+                                    <!-- 1. Painel de Inventário & Varredura -->
+                                    <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <TextBlock Text="INVENTÁRIO &amp; MICROGRAFIAS" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                                            
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox x:Name="TxtStudioDirectory" Text="fotos" VerticalAlignment="Center" ToolTip="Pasta raiz de micrografias"/>
+                                                <Button Grid.Column="1" Content="🔍 Escanear" Click="StudioScan_Click" Padding="10,6" Margin="6,0,0,0"
+                                                        Background="{DynamicResource BrandTitleBrush}" Foreground="#FFFFFF" FontWeight="SemiBold" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                            </Grid>
+
+                                            <DockPanel LastChildFill="False" Margin="0,0,0,6">
+                                                <TextBlock x:Name="TxtStudioTotalCount" Text="Total: 0 micrografias" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <TextBlock x:Name="TxtStudioDuplicatesBadge" DockPanel.Dock="Right" Text="0 duplicatas" FontSize="11" Foreground="#DC2626" FontWeight="SemiBold" Visibility="Collapsed"/>
+                                            </DockPanel>
+
+                                            <!-- Lista de Micrografias -->
+                                            <ListBox x:Name="LstStudioMicrographs" Height="140" SelectionChanged="LstStudioMicrographs_SelectionChanged" 
+                                                     Background="{DynamicResource InputBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Padding="6,4" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BorderSubtleBrush}">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <StackPanel Grid.Column="0">
+                                                                    <TextBlock Text="{Binding FileName}" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                                    <TextBlock Text="{Binding GroupInfo}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                                </StackPanel>
+                                                                <Border Grid.Column="1" CornerRadius="4" Padding="6,2" Background="{Binding BadgeBg}" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding StateBadge}" FontSize="9" FontWeight="Bold" Foreground="{Binding BadgeFg}"/>
+                                                                </Border>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                            </ListBox>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- 2. Alerta de Identificação Experimental -->
+                                    <Border Background="#FEF3C7" BorderBrush="#F59E0B" BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <TextBlock Text="🔬 Identificação Experimental" FontWeight="Bold" Foreground="#92400E" FontSize="11" Margin="0,0,0,3"/>
+                                            <TextBlock x:Name="TxtStudioSampleStatus" Text="Amostra Física: unknown (pendente de revisão)&#x0a;Independência: NÃO confirmada" 
+                                                       FontSize="10" Foreground="#78350F" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            <CheckBox x:Name="ChkStudioConfirmSample" Content="Confirmar independência experimental" 
+                                                      FontSize="10" Foreground="#78350F" Checked="ChkStudioConfirmSample_Changed" Unchecked="ChkStudioConfirmSample_Changed"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- 3. Ciclo de Vida da Anotação (Ground Truth) -->
+                                    <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <TextBlock Text="ESTADO DA ANOTAÇÃO" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                                            
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Content="💾 Salvar Rascunho" Click="StudioSaveDraft_Click" Margin="0,0,3,0" Padding="6,6"
+                                                        Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource TextPrimaryBrush}" 
+                                                        BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" FontSize="10" FontWeight="SemiBold" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                                <Button Grid.Column="1" Content="📋 Submeter Anotação" Click="StudioSubmitAnnotated_Click" Margin="3,0,0,0" Padding="6,6"
+                                                        Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource TextPrimaryBrush}" 
+                                                        BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" FontSize="10" FontWeight="SemiBold" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                            </Grid>
+
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Content="🔍 Marcar Revisado" Click="StudioMarkReviewed_Click" Margin="0,0,3,0" Padding="6,6"
+                                                        Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="#1D8CF8" 
+                                                        BorderBrush="#1D8CF8" BorderThickness="1" FontSize="10" FontWeight="SemiBold" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                                <Button Grid.Column="1" Content="⭐ Aprovar Ground Truth" Click="StudioApproveGroundTruth_Click" Margin="3,0,0,0" Padding="6,6"
+                                                        Background="#16A34A" Foreground="#FFFFFF" BorderThickness="0" FontSize="10" FontWeight="Bold" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                            </Grid>
+
+                                            <Button Content="🛡️ Assistente de Qualidade (QC)" Click="StudioInspectQC_Click" Padding="8,7"
+                                                    Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource BrandTitleBrush}"
+                                                    BorderBrush="{DynamicResource BrandTitleBrush}" BorderThickness="1" FontSize="11" FontWeight="SemiBold" Cursor="Hand">
+                                                <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                            </Button>
+                                            <TextBlock x:Name="TxtStudioQCStatus" Text="QC não executado." FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- 4. Splits & Prevenção de Vazamento -->
+                                    <Border Background="{DynamicResource SubCardBgBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <TextBlock Text="CURADORIA DE SPLITS (ZERO-LEAKAGE)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                                            
+                                            <TextBlock x:Name="TxtStudioLeakageStatus" Text="Train ∩ Val = ∅ | Train ∩ Test = ∅ | Val ∩ Test = ∅&#x0a;Status: Não calculado." 
+                                                       FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                                            <Grid Margin="0,0,0,8">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <Button Content="⚖️ Calcular Splits" Click="StudioCalculateSplits_Click" Margin="0,0,3,0" Padding="6,6"
+                                                        Background="{DynamicResource BtnSecondaryBgBrush}" Foreground="{DynamicResource TextPrimaryBrush}" 
+                                                        BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" FontSize="10" FontWeight="SemiBold" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                                <Button Grid.Column="1" Content="🚀 Exportar Release" Click="StudioExportRelease_Click" Margin="3,0,0,0" Padding="6,6"
+                                                        Background="{DynamicResource BrandTitleBrush}" Foreground="#FFFFFF" BorderThickness="0" FontSize="10" FontWeight="Bold" Cursor="Hand">
+                                                    <Button.Resources><Style TargetType="Border"><Setter Property="CornerRadius" Value="4"/></Style></Button.Resources>
+                                                </Button>
+                                            </Grid>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>

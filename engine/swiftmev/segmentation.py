@@ -19,10 +19,13 @@ def segment(
     use_clahe: bool = False,
     sauvola_window: int = 35,
     sauvola_k: float = 0.2,
-    apply_morphology: bool = True
+    apply_morphology: bool = True,
+    model_id: str | None = None,
+    models_dir: str | None = None,
+    expected_task: str | None = "fiber_segmentation",
 ) -> np.ndarray:
     """
-    Segmenta a imagem utilizando método global (Otsu) ou adaptativo local (Sauvola).
+    Segmenta a imagem utilizando método global (Otsu), adaptativo local (Sauvola) ou IA (ONNX).
 
     Parameters
     ----------
@@ -59,10 +62,20 @@ def segment(
             mask = np.where(gray < thresh_map, 255, 0).astype(np.uint8)
         else:
             mask = np.where(gray > thresh_map, 255, 0).astype(np.uint8)
+    elif method_lower == "ai":
+        from swiftmev.ai import get_model, is_ai_available
+        from swiftmev.ai.exceptions import AINotAvailableError
+        if not is_ai_available():
+            raise AINotAvailableError()
+        target_model_id = model_id or "test_fiber_onnx_mock"
+        ai_model = get_model(target_model_id, expected_task=expected_task, models_dir=models_dir)
+        mask = ai_model.predict(gray)
+        if invert:
+            mask = cv2.bitwise_not(mask)
     else:
         raise ValueError(
             f"Método de segmentação desconhecido: '{method}'. "
-            f"Opções válidas: 'otsu', 'sauvola'."
+            f"Opções válidas: 'otsu', 'sauvola', 'ai'."
         )
 
     if apply_morphology:

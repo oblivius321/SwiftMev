@@ -20,3 +20,7 @@ outputs/*
 # IDEs
 .vscode/
 .idea/
+
+# Micrografias de bancada privadas e releases locais de datasets
+fotos/
+dataset_releases/

@@ -1,0 +1,26 @@
+{
+  "model_id": "test_fiber_onnx_mock",
+  "name": "ONNX Minimal Mock (Alpha 0.6A Integration Pipeline Test)",
+  "task": "fiber_segmentation",
+  "architecture": "SingleConvSigmoid-Mock-256",
+  "model_version": "0.1.0-mock",
+  "input_shape": [
+    1,
+    1,
+    256,
+    256
+  ],
+  "input_dtype": "float32",
+  "normalization": {
+    "type": "min_max",
+    "scale": 0.00392156862745098
+  },
+  "output_type": "probability_map",
+  "threshold": 0.5,
+  "license": "MIT",
+  "provenance": "Modelo sintético mínimo (Convolução 3x3 + Sigmoide) gerado para validação técnica da esteira ONNX e tiling. Não é uma U-Net e NÃO possui validação científica.",
+  "scientific_limitations": "Pesos sintéticos não representativos de biometria real. Utilizado estritamente para teste de infraestrutura de software.",
+  "checksum_sha256": "af8735c616eb3c66984783308f4dfecdbb47e02f9484a5415c4a947b655a8a8a",
+  "onnx_filename": "model.onnx",
+  "tile_overlap": 64
+}

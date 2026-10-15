@@ -1,0 +1,4 @@
+# SwiftMev Engine - Development and Test Requirements
+-r requirements.txt
+pytest>=8,<10
+onnx>=1.15,<2

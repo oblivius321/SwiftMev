@@ -24,18 +24,18 @@ def run_migration(
     invert: bool = False,
     sauvola_window: int = 35,
     sauvola_k: float = 0.2,
+    **kwargs,
 ) -> tuple[dict, np.ndarray, np.ndarray]:
     """
     Pipeline completo de migração celular (scratch assay).
-
-    Returns
-    -------
-    tuple[dict, np.ndarray, np.ndarray]
-        (metrics, mask, annotated_image)
-        - metrics: dicionário com métricas de migração
-        - mask: máscara binária produzida pela segmentação
-        - annotated_image: imagem com contornos para visualização
     """
+    if method.lower() == "ai":
+        from swiftmev.ai.exceptions import TaskIncompatibilityError
+        raise TaskIncompatibilityError(
+            model_task="fiber_segmentation",
+            requested_task="migration_segmentation"
+        )
+
     validate_calibration(um_per_pixel)
 
     # 1. Segmentação (executada uma única vez)
@@ -69,6 +69,8 @@ def run_fiber(
     invert: bool = False,
     sauvola_window: int = 35,
     sauvola_k: float = 0.2,
+    model_id: str | None = None,
+    models_dir: str | None = None,
 ) -> tuple[dict, np.ndarray, np.ndarray]:
     """
     Pipeline completo de análise de fibras.
@@ -77,9 +79,6 @@ def run_fiber(
     -------
     tuple[dict, np.ndarray, np.ndarray]
         (metrics, mask, annotated_image)
-        - metrics: dicionário com métricas de diâmetro de fibras
-        - mask: máscara binária produzida pela segmentação
-        - annotated_image: imagem com contornos para visualização
     """
     validate_calibration(um_per_pixel)
 
@@ -91,6 +90,9 @@ def run_fiber(
         use_clahe=use_clahe,
         sauvola_window=sauvola_window,
         sauvola_k=sauvola_k,
+        model_id=model_id,
+        models_dir=models_dir,
+        expected_task="fiber_segmentation",
     )
 
     # 2. Métricas (recebe a máscara já computada)
@@ -98,6 +100,21 @@ def run_fiber(
     metrics["method"] = method
     metrics["clahe_applied"] = use_clahe
     metrics["inverted"] = invert
+
+    if method.lower() == "ai":
+        from swiftmev.ai import get_model
+        ai_m = get_model(model_id or "test_fiber_onnx_mock", expected_task="fiber_segmentation", models_dir=models_dir)
+        metrics["ai_model"] = {
+            "model_id": ai_m.manifest.model_id,
+            "name": ai_m.manifest.name,
+            "architecture": ai_m.manifest.architecture,
+            "model_version": ai_m.manifest.model_version,
+            "checksum_sha256": ai_m.manifest.checksum_sha256,
+            "license": ai_m.manifest.license,
+            "provenance": ai_m.manifest.provenance,
+            "scientific_limitations": ai_m.manifest.scientific_limitations,
+            "status": "experimental_unvalidated",
+        }
 
     # 3. Overlay (reutiliza a mesma máscara)
     gray = ensure_gray_uint8(img)
